@@ -1,0 +1,777 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>HOMPOA - Property Management Platform</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f0f2f5;
+        }
+        .sidebar {
+            background: linear-gradient(180deg, #1a237e 0%, #0d1445 100%);
+            min-height: 100vh;
+            width: 250px;
+            position: fixed;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            z-index: 1000;
+            transition: transform 0.3s ease;
+            overflow-y: auto;
+        }
+        .sidebar-item {
+            padding: 12px 20px;
+            margin: 4px 12px;
+            border-radius: 10px;
+            color: rgba(255, 255, 255, 0.7);
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .sidebar-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+        .sidebar-item.active {
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+        .sidebar-item i {
+            width: 20px;
+            text-align: center;
+        }
+        .main-content {
+            margin-left: 250px;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        .top-bar {
+            background: white;
+            padding: 15px 30px;
+            border-radius: 15px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            margin-bottom: 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            transition: transform 0.2s;
+        }
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+        .page-section {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+        .page-section.active {
+            display: block;
+        }
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        .property-card {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            transition: transform 0.2s;
+        }
+        .property-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        }
+        .status-badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+        .status-available {
+            background: #dcfce7;
+            color: #166534;
+        }
+        .status-occupied {
+            background: #fef3c7;
+            color: #92400e;
+        }
+        .status-maintenance {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+        .status-reserved {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+        }
+        .modal.active {
+            display: flex;
+        }
+        .modal-content {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            animation: slideIn 0.3s ease;
+        }
+        @keyframes slideIn {
+            from {
+                transform: scale(0.9);
+                opacity: 0;
+            }
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+        .form-input {
+            width: 100%;
+            padding: 10px 14px;
+            border: 2px solid #e5e7eb;
+            border-radius: 10px;
+            transition: border-color 0.2s;
+            font-size: 14px;
+        }
+        .form-input:focus {
+            outline: none;
+            border-color: #1a237e;
+        }
+        .btn-primary {
+            background: #1a237e;
+            color: white;
+            padding: 10px 25px;
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .btn-primary:hover {
+            background: #0d1445;
+        }
+        .btn-success {
+            background: #16a34a;
+            color: white;
+            padding: 10px 25px;
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .btn-success:hover {
+            background: #15803d;
+        }
+        .btn-danger {
+            background: #dc2626;
+            color: white;
+            padding: 10px 25px;
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .btn-danger:hover {
+            background: #b91c1c;
+        }
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            border-radius: 12px;
+            color: white;
+            font-weight: 500;
+            z-index: 3000;
+            animation: slideInRight 0.3s ease;
+            max-width: 400px;
+        }
+        @keyframes slideInRight {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        .notification-success {
+            background: #16a34a;
+        }
+        .notification-error {
+            background: #dc2626;
+        }
+        .notification-info {
+            background: #2563eb;
+        }
+        .table-container {
+            overflow-x: auto;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th {
+            background: #f8fafc;
+            padding: 12px 16px;
+            text-align: left;
+            font-size: 12px;
+            font-weight: 600;
+            color: #475569;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+        td {
+            padding: 12px 16px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        tr:hover {
+            background: #f8fafc;
+        }
+        .mobile-toggle {
+            display: none;
+            background: #1a237e;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 10px;
+            font-size: 20px;
+            cursor: pointer;
+        }
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+            .sidebar.open {
+                transform: translateX(0);
+            }
+            .main-content {
+                margin-left: 0;
+            }
+            .mobile-toggle {
+                display: block;
+            }
+            .top-bar {
+                flex-wrap: wrap;
+                gap: 10px;
+            }
+            .stat-card {
+                margin-bottom: 15px;
+            }
+        }
+        .logo {
+            padding: 20px 25px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            margin-bottom: 20px;
+        }
+        .logo h1 {
+            color: white;
+            font-size: 24px;
+            font-weight: 700;
+        }
+        .logo span {
+            color: #64b5f6;
+            font-size: 12px;
+            display: block;
+        }
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #1a237e;
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #0d1445;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ==================== SIDEBAR ==================== -->
+    <nav class="sidebar" id="sidebar">
+        <div class="logo">
+            <h1>🏠 HOMPOA</h1>
+            <span>Property Management Platform</span>
+        </div>
+        <div class="sidebar-item active" data-page="dashboard">
+            <i class="fas fa-chart-pie"></i> Dashboard
+        </div>
+        <div class="sidebar-item" data-page="properties">
+            <i class="fas fa-building"></i> Properties
+        </div>
+        <div class="sidebar-item" data-page="tenants">
+            <i class="fas fa-users"></i> Tenants
+        </div>
+        <div class="sidebar-item" data-page="payments">
+            <i class="fas fa-credit-card"></i> Payments
+        </div>
+        <div class="sidebar-item" data-page="units">
+            <i class="fas fa-door-open"></i> Units
+        </div>
+        <div class="sidebar-item" data-page="utilities">
+            <i class="fas fa-water"></i> Utilities
+        </div>
+        <div class="sidebar-item" data-page="marketplace">
+            <i class="fas fa-store"></i> Marketplace
+        </div>
+        <div class="sidebar-item" data-page="reports">
+            <i class="fas fa-chart-line"></i> Reports
+        </div>
+        <div class="sidebar-item" data-page="settings">
+            <i class="fas fa-cog"></i> Settings
+        </div>
+        <div style="border-top:1px solid rgba(255,255,255,0.1);margin-top:20px;padding:20px 25px;">
+            <div class="sidebar-item" onclick="logout()">
+                <i class="fas fa-sign-out-alt"></i> Logout
+            </div>
+        </div>
+    </nav>
+
+    <!-- ==================== MAIN CONTENT ==================== -->
+    <div class="main-content">
+        <!-- Top Bar -->
+        <div class="top-bar">
+            <div style="display:flex;align-items:center;gap:15px;">
+                <button class="mobile-toggle" onclick="toggleSidebar()">☰</button>
+                <div>
+                    <h2 style="font-size:20px;font-weight:700;color:#1a237e;" id="pageTitle">Dashboard</h2>
+                    <p style="color:#64748b;font-size:14px;" id="pageSubtitle">Welcome back, Admin</p>
+                </div>
+            </div>
+            <div style="display:flex;align-items:center;gap:15px;">
+                <span style="display:flex;align-items:center;gap:8px;background:#f1f5f9;padding:8px 15px;border-radius:20px;font-size:13px;">
+                    <i class="fas fa-building" style="color:#1a237e;"></i> HOMPOA Agency
+                </span>
+                <div style="width:40px;height:40px;border-radius:50%;background:#1a237e;color:white;display:flex;align-items:center;justify-content:center;font-weight:700;">
+                    SA
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== DASHBOARD PAGE ==================== -->
+        <div class="page-section active" id="page-dashboard">
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:20px;margin-bottom:25px;">
+                <div class="stat-card">
+                    <p style="color:#64748b;font-size:13px;">Total Properties</p>
+                    <p style="font-size:28px;font-weight:700;color:#1a237e;" id="totalProperties">0</p>
+                </div>
+                <div class="stat-card">
+                    <p style="color:#64748b;font-size:13px;">Occupied Units</p>
+                    <p style="font-size:28px;font-weight:700;color:#16a34a;" id="occupiedUnits">0</p>
+                </div>
+                <div class="stat-card">
+                    <p style="color:#64748b;font-size:13px;">Available Units</p>
+                    <p style="font-size:28px;font-weight:700;color:#2563eb;" id="availableUnits">0</p>
+                </div>
+                <div class="stat-card">
+                    <p style="color:#64748b;font-size:13px;">Monthly Revenue</p>
+                    <p style="font-size:28px;font-weight:700;color:#7c3aed;" id="monthlyRevenue">KES 0</p>
+                </div>
+                <div class="stat-card">
+                    <p style="color:#64748b;font-size:13px;">Total Tenants</p>
+                    <p style="font-size:28px;font-weight:700;color:#d97706;" id="totalTenants">0</p>
+                </div>
+                <div class="stat-card">
+                    <p style="color:#64748b;font-size:13px;">Arrears</p>
+                    <p style="font-size:28px;font-weight:700;color:#dc2626;" id="totalArrears">KES 0</p>
+                </div>
+            </div>
+
+            <!-- Recent Activity -->
+            <div style="background:white;border-radius:15px;padding:25px;box-shadow:0 2px 10px rgba(0,0,0,0.05);">
+                <h3 style="font-size:16px;font-weight:600;color:#1e293b;margin-bottom:15px;">Recent Activity</h3>
+                <div id="recentActivity">
+                    <p style="color:#94a3b8;text-align:center;padding:20px;">No recent activity</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== PROPERTIES PAGE ==================== -->
+        <div class="page-section" id="page-properties">
+            <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:15px;margin-bottom:20px;">
+                <h3 style="font-size:18px;font-weight:600;color:#1e293b;">All Properties</h3>
+                <button class="btn-primary" onclick="openModal('propertyModal')">
+                    <i class="fas fa-plus"></i> Add Property
+                </button>
+            </div>
+            <div id="propertyList" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:20px;">
+                <!-- Properties will be rendered here -->
+            </div>
+        </div>
+
+        <!-- ==================== TENANTS PAGE ==================== -->
+        <div class="page-section" id="page-tenants">
+            <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:15px;margin-bottom:20px;">
+                <h3 style="font-size:18px;font-weight:600;color:#1e293b;">All Tenants</h3>
+                <button class="btn-primary" onclick="openModal('tenantModal')">
+                    <i class="fas fa-user-plus"></i> Add Tenant
+                </button>
+            </div>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Phone</th>
+                            <th>Email</th>
+                            <th>Unit</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tenantTableBody">
+                        <tr><td colspan="6" style="text-align:center;color:#94a3b8;padding:30px;">No tenants added yet</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- ==================== PAYMENTS PAGE ==================== -->
+        <div class="page-section" id="page-payments">
+            <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:15px;margin-bottom:20px;">
+                <h3 style="font-size:18px;font-weight:600;color:#1e293b;">Payment Ledger</h3>
+                <button class="btn-success" onclick="openModal('paymentModal')">
+                    <i class="fas fa-plus"></i> Record Payment
+                </button>
+            </div>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Tenant</th>
+                            <th>Amount</th>
+                            <th>Type</th>
+                            <th>Method</th>
+                            <th>Date</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="paymentTableBody">
+                        <tr><td colspan="6" style="text-align:center;color:#94a3b8;padding:30px;">No payments recorded</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- ==================== UNITS PAGE ==================== -->
+        <div class="page-section" id="page-units">
+            <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:15px;margin-bottom:20px;">
+                <h3 style="font-size:18px;font-weight:600;color:#1e293b;">Units Management</h3>
+                <button class="btn-primary" onclick="openModal('unitModal')">
+                    <i class="fas fa-plus"></i> Add Unit
+                </button>
+            </div>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Unit #</th>
+                            <th>Property</th>
+                            <th>Type</th>
+                            <th>Rent</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="unitTableBody">
+                        <tr><td colspan="6" style="text-align:center;color:#94a3b8;padding:30px;">No units added yet</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- ==================== UTILITIES PAGE ==================== -->
+        <div class="page-section" id="page-utilities">
+            <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:15px;margin-bottom:20px;">
+                <h3 style="font-size:18px;font-weight:600;color:#1e293b;">Utility Billing</h3>
+                <button class="btn-primary" onclick="openModal('utilityModal')">
+                    <i class="fas fa-plus"></i> Add Utility
+                </button>
+            </div>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Unit</th>
+                            <th>Type</th>
+                            <th>Rate</th>
+                            <th>Last Reading</th>
+                            <th>Current Reading</th>
+                            <th>Amount</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="utilityTableBody">
+                        <tr><td colspan="7" style="text-align:center;color:#94a3b8;padding:30px;">No utilities recorded</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- ==================== MARKETPLACE PAGE ==================== -->
+        <div class="page-section" id="page-marketplace">
+            <h3 style="font-size:18px;font-weight:600;color:#1e293b;margin-bottom:20px;">Public Marketplace</h3>
+            <div style="background:white;border-radius:15px;padding:25px;text-align:center;box-shadow:0 2px 10px rgba(0,0,0,0.05);">
+                <i class="fas fa-store" style="font-size:48px;color:#1a237e;margin-bottom:15px;"></i>
+                <p style="color:#64748b;margin-bottom:15px;">Your properties will appear here for public viewing</p>
+                <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
+                    <button class="btn-primary" onclick="showNotification('Marketplace is now live!','info')">
+                        <i class="fas fa-globe"></i> Publish Listings
+                    </button>
+                    <button class="btn-success" onclick="showNotification('Shareable links generated!','success')">
+                        <i class="fas fa-share-alt"></i> Share Properties
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== REPORTS PAGE ==================== -->
+        <div class="page-section" id="page-reports">
+            <h3 style="font-size:18px;font-weight:600;color:#1e293b;margin-bottom:20px;">Reports & Analytics</h3>
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:20px;">
+                <div class="stat-card" style="cursor:pointer;" onclick="showNotification('Generating occupancy report...','info')">
+                    <i class="fas fa-users" style="color:#1a237e;font-size:24px;"></i>
+                    <h4 style="font-weight:600;margin:10px 0 5px;">Occupancy Report</h4>
+                    <p style="color:#64748b;font-size:13px;">View occupancy rates by property</p>
+                </div>
+                <div class="stat-card" style="cursor:pointer;" onclick="showNotification('Generating revenue report...','info')">
+                    <i class="fas fa-money-bill-wave" style="color:#16a34a;font-size:24px;"></i>
+                    <h4 style="font-weight:600;margin:10px 0 5px;">Revenue Report</h4>
+                    <p style="color:#64748b;font-size:13px;">Monthly revenue breakdown</p>
+                </div>
+                <div class="stat-card" style="cursor:pointer;" onclick="showNotification('Generating arrears report...','info')">
+                    <i class="fas fa-exclamation-triangle" style="color:#dc2626;font-size:24px;"></i>
+                    <h4 style="font-weight:600;margin:10px 0 5px;">Arrears Report</h4>
+                    <p style="color:#64748b;font-size:13px;">Overdue payments summary</p>
+                </div>
+                <div class="stat-card" style="cursor:pointer;" onclick="showNotification('Generating landlord statement...','info')">
+                    <i class="fas fa-file-pdf" style="color:#7c3aed;font-size:24px;"></i>
+                    <h4 style="font-weight:600;margin:10px 0 5px;">Landlord Statements</h4>
+                    <p style="color:#64748b;font-size:13px;">Monthly income statements</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== SETTINGS PAGE ==================== -->
+        <div class="page-section" id="page-settings">
+            <h3 style="font-size:18px;font-weight:600;color:#1e293b;margin-bottom:20px;">Settings</h3>
+            <div style="background:white;border-radius:15px;padding:25px;box-shadow:0 2px 10px rgba(0,0,0,0.05);max-width:600px;">
+                <div style="margin-bottom:20px;">
+                    <label style="display:block;font-weight:500;color:#1e293b;margin-bottom:5px;">Agency Name</label>
+                    <input class="form-input" value="HOMPOA Agency" />
+                </div>
+                <div style="margin-bottom:20px;">
+                    <label style="display:block;font-weight:500;color:#1e293b;margin-bottom:5px;">Subscription Tier</label>
+                    <select class="form-input">
+                        <option>Free</option>
+                        <option selected>Premium</option>
+                        <option>Enterprise</option>
+                    </select>
+                </div>
+                <div style="margin-bottom:20px;">
+                    <label style="display:block;font-weight:500;color:#1e293b;margin-bottom:5px;">Currency</label>
+                    <select class="form-input">
+                        <option>KES - Kenyan Shilling</option>
+                        <option>USD - US Dollar</option>
+                    </select>
+                </div>
+                <button class="btn-primary" onclick="showNotification('Settings saved successfully!','success')">Save Settings</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== MODALS ==================== -->
+
+    <!-- Property Modal -->
+    <div class="modal" id="propertyModal">
+        <div class="modal-content">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+                <h3 style="font-size:20px;font-weight:700;color:#1a237e;">Add Property</h3>
+                <button onclick="closeModal('propertyModal')" style="background:none;border:none;font-size:24px;cursor:pointer;">×</button>
+            </div>
+            <form id="propertyForm" onsubmit="addProperty(event)">
+                <input type="hidden" id="propertyId" />
+                <div style="margin-bottom:15px;">
+                    <label style="display:block;font-weight:500;margin-bottom:5px;">Property Name</label>
+                    <input class="form-input" id="propName" placeholder="e.g., Sunshine Apartments" required />
+                </div>
+                <div style="margin-bottom:15px;">
+                    <label style="display:block;font-weight:500;margin-bottom:5px;">Type</label>
+                    <select class="form-input" id="propType">
+                        <option value="rental">Rental</option>
+                        <option value="land">Land</option>
+                        <option value="apartment">Apartment</option>
+                        <option value="commercial">Commercial</option>
+                    </select>
+                </div>
+                <div style="margin-bottom:15px;">
+                    <label style="display:block;font-weight:500;margin-bottom:5px;">Location</label>
+                    <input class="form-input" id="propLocation" placeholder="e.g., Nairobi, Westlands" />
+                </div>
+                <div style="margin-bottom:15px;">
+                    <label style="display:block;font-weight:500;margin-bottom:5px;">Price (KES)</label>
+                    <input class="form-input" id="propPrice" type="number" placeholder="e.g., 50000" />
+                </div>
+                <div style="margin-bottom:15px;">
+                    <label style="display:block;font-weight:500;margin-bottom:5px;">Status</label>
+                    <select class="form-input" id="propStatus">
+                        <option value="available">Available</option>
+                        <option value="reserved">Reserved</option>
+                        <option value="sold">Sold</option>
+                    </select>
+                </div>
+                <div style="margin-bottom:15px;">
+                    <label style="display:block;font-weight:500;margin-bottom:5px;">Description</label>
+                    <textarea class="form-input" id="propDescription" rows="3" placeholder="Property description..."></textarea>
+                </div>
+                <button type="submit" class="btn-primary" style="width:100%;">Save Property</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Tenant Modal -->
+    <div class="modal" id="tenantModal">
+        <div class="modal-content">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+                <h3 style="font-size:20px;font-weight:700;color:#1a237e;">Add Tenant</h3>
+                <button onclick="closeModal('tenantModal')" style="background:none;border:none;font-size:24px;cursor:pointer;">×</button>
+            </div>
+            <form id="tenantForm" onsubmit="addTenant(event)">
+                <div style="margin-bottom:15px;">
+                    <label style="display:block;font-weight:500;margin-bottom:5px;">Full Name</label>
+                    <input class="form-input" id="tenantName" placeholder="e.g., John Mwangi" required />
+                </div>
+                <div style="margin-bottom:15px;">
+                    <label style="display:block;font-weight:500;margin-bottom:5px;">Phone</label>
+                    <input class="form-input" id="tenantPhone" placeholder="e.g., 0712345678" required />
+                </div>
+                <div style="margin-bottom:15px;">
+                    <label style="display:block;font-weight:500;margin-bottom:5px;">Email</label>
+                    <input class="form-input" id="tenantEmail" placeholder="e.g., john@email.com" type="email" />
+                </div>
+                <div style="margin-bottom:15px;">
+                    <label style="display:block;font-weight:500;margin-bottom:5px;">Unit</label>
+                    <select class="form-input" id="tenantUnit">
+                        <option value="">Select Unit</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn-primary" style="width:100%;">Save Tenant</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Payment Modal -->
+    <div class="modal" id="paymentModal">
+        <div class="modal-content">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+                <h3 style="font-size:20px;font-weight:700;color:#1a237e;">Record Payment</h3>
+                <button onclick="closeModal('paymentModal')" style="background:none;border:none;font-size:24px;cursor:pointer;">×</button>
+            </div>
+            <form id="paymentForm" onsubmit="addPayment(event)">
+                <div style="margin-bottom:15px;">
+                    <label style="display:block;font-weight:500;margin-bottom:5px;">Tenant</label>
+                    <select class="form-input" id="paymentTenant" required>
+                        <option value="">Select Tenant</option>
+                    </select>
+                </div>
+                <div style="margin-bottom:15px;">
+                    <label style="display:block;font-weight:500;margin-bottom:5px;">Amount (KES)</label>
+                    <input class="form-input" id="paymentAmount" type="number" placeholder="e.g., 25000" required />
+                </div>
+                <div style="margin-bottom:15px;">
+                    <label style="display:block;font-weight:500;margin-bottom:5px;">Type</label>
+                    <select class="form-input" id="paymentType">
+                        <option value="rent">Rent</option>
+                        <option value="utility">Utility</option>
+                        <option value="deposit">Deposit</option>
+                        <option value="installment">Installment</option>
+                    </select>
+                </div>
+                <div style="margin-bottom:15px;">
+                    <label style="display:block;font-weight:500;margin-bottom:5px;">Method</label>
+                    <select class="form-input" id="paymentMethod">
+                        <option value="mpesa">M-Pesa</option>
+                        <option value="cash">Cash</option>
+                        <option value="bank">Bank Transfer</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn-success" style="width:100%;">Record Payment</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Unit Modal -->
+    <div class="modal" id="unitModal">
+        <div class="modal-content">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+                <h3 style="font-size:20px;font-weight:700;color:#1a237e;">Add Unit</h3>
+                <button onclick="closeModal('unitModal')" style="background:none;border:none;font-size:24px;cursor:pointer;">×</button>
+            </div>
+            <form id="unitForm" onsubmit="addUnit(event)">
+                <div style="margin-bottom:15px;">
+                    <label style="display:block;font-weight:500;margin-bottom:5px;">Unit Number</label>
+                    <input class="form-input" id="unitNumber" placeholder="e.g., A101" required />
+                </div>
+                <div style="margin-bottom:15px;">
+                    <label style="display:block;font-weight:500;margin-bottom:5px;">Property</label>
+                    <select class="form-input" id="unitProperty" required>
+                        <option value="">Select Property</option>
+                    </select>
+                </div>
+                <div style="margin-bottom:15px;">
+                    <label style="display:block;font-weight:500;margin-bottom:5px;">Type</label>
+                    <select class="form-input" id="unitType">
+                        <option value="studio">Studio</option>
+                        <option value="1BR">1 Bedroom</option>
+                        <option value="2BR">2 Bedroom</option>
+                        <option value="3BR">3 Bedroom</option>
+                    </select>
+                </div>
+                <div style="margin-bottom:15px;">
+                    <label style="display:block;font-weight:500;margin-bottom:5px;">Rent Amount (KES)</label>
+                    <input class="form-input" id="unitRent" type="number" placeholder="e.g., 25000" required />
+                </div>
+                <div style="margin-bottom:15px;">
+                    <label style="display:
